@@ -115,18 +115,42 @@
                 <tr><th class="p-3 border-b">No</th><th class="p-3 border-b">Nama</th><th class="p-3 border-b">Kelas</th><th class="p-3 border-b">Jenis</th><th class="p-3 border-b">Poin</th><th class="p-3 border-b">Tanggal</th><th class="p-3 border-b">Aksi</th></tr>
               </thead>
               <tbody class="divide-y">
+
+                <?php
+                include "koneksi.php";
+
+                $no = 1;
+                $data = mysqli_query($DB, "SELECT * FROM pelanggaran");
+
+                while($d = mysqli_fetch_array($data)){
+                ?>
+
                 <tr class="hover:bg-gray-50">
-                  <td class="p-3">1</td><td class="p-3 font-medium student-name">Andi Pratama</td><td class="p-3">XI IPA 1</td><td class="p-3 text-red-500">Terlambat</td><td class="p-3">10</td><td class="p-3">29 Jul 2024</td>
-                  <td class="p-3 flex gap-1"><button class="bg-blue-500 text-white p-1.5 rounded"><i class="fas fa-eye text-xs"></i></button><button class="bg-orange-400 text-white p-1.5 rounded"><i class="fas fa-edit text-xs"></i></button><button class="bg-red-500 text-white p-1.5 rounded"><i class="fas fa-trash text-xs"></i></button></td>
+
+                <td class="p-3"><?= $no++; ?></td>
+
+                <td class="p-3"><?= $d['nama_pelanggaran']; ?></td>
+
+                <td class="p-3"><?= $d['poin']; ?></td>
+
+                <td class="p-3 flex gap-1">
+
+                <a href="edit.php?id=<?= $d['id_pelanggaran']; ?>" class="bg-orange-500 text-white p-2 rounded">
+                <i class="fas fa-edit"></i>
+                </a>
+
+                <a href="hapus.php?id=<?= $d['id_pelanggaran']; ?>"
+                onclick="return confirm('Hapus data?')"
+                class="bg-red-500 text-white p-2 rounded">
+                <i class="fas fa-trash"></i>
+                </a>
+
+                </td>
+
                 </tr>
-                <tr class="hover:bg-gray-50">
-                  <td class="p-3">2</td><td class="p-3 font-medium student-name">Budi Santoso</td><td class="p-3">XI IPA 2</td><td class="p-3">Tidak atribut</td><td class="p-3">5</td><td class="p-3">29 Jul 2024</td>
-                  <td class="p-3 flex gap-1"><button class="bg-blue-500 text-white p-1.5 rounded"><i class="fas fa-eye text-xs"></i></button><button class="bg-orange-400 text-white p-1.5 rounded"><i class="fas fa-edit text-xs"></i></button><button class="bg-red-500 text-white p-1.5 rounded"><i class="fas fa-trash text-xs"></i></button></td>
-                </tr>
-                <tr class="hover:bg-gray-50">
-                  <td class="p-3">3</td><td class="p-3 font-medium student-name">Citra Lestari</td><td class="p-3">XII IPS 1</td><td class="p-3 text-red-500">Membolos</td><td class="p-3">20</td><td class="p-3">28 Jul 2024</td>
-                  <td class="p-3 flex gap-1"><button class="bg-blue-500 text-white p-1.5 rounded"><i class="fas fa-eye text-xs"></i></button><button class="bg-orange-400 text-white p-1.5 rounded"><i class="fas fa-edit text-xs"></i></button><button class="bg-red-500 text-white p-1.5 rounded"><i class="fas fa-trash text-xs"></i></button></td>
-                </tr>
+
+                <?php } ?>
+
               </tbody>
             </table>
           </div>
