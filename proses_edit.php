@@ -1,43 +1,53 @@
 <?php
 include "koneksi.php";
 
-$id_transaksi   = $_POST['id_transaksi'] ?? '';
-$nama_siswa     = trim($_POST['nama_siswa'] ?? '');
-$kelas          = trim($_POST['kelas'] ?? '');
-$id_pelanggaran = $_POST['id_pelanggaran'] ?? '';
-$poin           = $_POST['poin'] ?? 0;
-$tanggal        = $_POST['tanggal'] ?? date('Y-m-d');
+$id_transaksi   = $_POST['id_transaksi'];
+$nama_siswa     = $_POST['nama_siswa'];
+$kelas_jurusan  = strtoupper($_POST['kelas_jurusan']);
+$id_pelanggaran = $_POST['id_pelanggaran'];
+$keterangan     = $_POST['keterangan'];
+$tanggal        = $_POST['tanggal'];
 
-if(!empty($id_transaksi) && !empty($nama_siswa)){
+// Pisahkan kelas dan jurusan
+$data = explode(" ", $kelas_jurusan);
+$kelas = $data[0]." ".$data[2];
+$jurusan = $data[1];
 
-    // 1. Ambil id_siswa dari transaksi yang sedang di-edit
-    $q_trans = mysqli_query($DB, "SELECT id_siswa FROM transaksi WHERE id_transaksi = '$id_transaksi'");
-    
-    if(mysqli_num_rows($q_trans) > 0){
-        $trans = mysqli_fetch_assoc($q_trans);
-        $id_siswa = $trans['id_siswa'];
+// Ambil poin otomatis
+$pelanggaran = mysqli_fetch_assoc(mysqli_query($DB,
+"SELECT poin FROM pelanggaran
+WHERE id_pelanggaran='$id_pelanggaran'"));
 
-        // 2. Update nama siswa di tabel 'siswa'
-        mysqli_query($DB, "UPDATE siswa SET nama_siswa = '$nama_siswa' WHERE id_siswa = '$id_siswa'");
+$poin = $pelanggaran['poin'];
 
-        // 3. Update data pelanggaran di tabel 'transaksi' (menggunakan nama kolom 'tangal')
-        $update_transaksi = mysqli_query($DB, "UPDATE transaksi SET 
-                                                kelas = '$kelas', 
-                                                id_pelanggaran = '$id_pelanggaran', 
-                                                poin = '$poin', 
-                                                tangal = '$tanggal' 
-                                                WHERE id_transaksi = '$id_transaksi'");
+// Ambil id_siswa
+$transaksi = mysqli_fetch_assoc(mysqli_query($DB,
+"SELECT id_siswa
+FROM transaksi
+WHERE id_transaksi='$id_transaksi'"));
 
-        if($update_transaksi){
-            echo "<script>alert('Data berhasil diperbarui!'); window.location='index.php';</script>";
-        } else {
-            echo "<script>alert('Gagal memperbarui transaksi!'); window.location='index.php';</script>";
-        }
-    } else {
-        echo "<script>alert('Data transaksi tidak ditemukan!'); window.location='index.php';</script>";
-    }
+$id_siswa = $transaksi['id_siswa'];
 
-} else {
-    header("Location: index.php");
-}
+// Update data siswa
+mysqli_query($DB,"
+UPDATE siswa SET
+nama_siswa='$nama_siswa',
+kelas='$kelas',
+jurusan='$jurusan'
+WHERE id_siswa='$id_siswa'
+");
+
+// Update transaksi
+mysqli_query($DB,"
+UPDATE transaksi SET
+kelas='$kelas_jurusan',
+id_pelanggaran='$id_pelanggaran',
+poin='$poin',
+tangal='$tanggal',
+keterangan='$keterangan'
+WHERE id_transaksi='$id_transaksi'
+");
+
+header("Location:index.php");
+exit;
 ?>

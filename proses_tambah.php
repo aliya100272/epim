@@ -1,37 +1,50 @@
 <?php
 include "koneksi.php";
 
-$nama_siswa     = trim($_POST['nama_siswa'] ?? '');
-$kelas          = trim($_POST['kelas'] ?? '');
-$id_pelanggaran = $_POST['id_pelanggaran'] ?? '';
-$poin           = $_POST['poin'] ?? 0;
-$tanggal        = $_POST['tanggal'] ?? date('Y-m-d');
+$nama = $_POST['nama_siswa'];
+$kelas_jurusan = strtoupper($_POST['kelas_jurusan']);
+$id_pelanggaran = $_POST['id_pelanggaran'];
+$keterangan = $_POST['keterangan'];
+$tanggal = $_POST['tanggal'];
 
-if(!empty($nama_siswa) && !empty($id_pelanggaran)){
-    
-    // Cek apakah siswa sudah ada di tabel 'siswa'
-    $cek_siswa = mysqli_query($DB, "SELECT id_siswa FROM siswa WHERE nama_siswa = '$nama_siswa' LIMIT 1");
+$data = explode(" ", $kelas_jurusan);
+$kelas = $data[0]." ".$data[2];
+$jurusan = $data[1];
 
-    if(mysqli_num_rows($cek_siswa) > 0){
-        $row_siswa = mysqli_fetch_assoc($cek_siswa);
-        $id_siswa  = $row_siswa['id_siswa'];
-    } else {
-        // Simpan siswa baru hanya dengan nama_siswa
-        $insert_siswa = mysqli_query($DB, "INSERT INTO siswa (nama_siswa) VALUES ('$nama_siswa')");
-        $id_siswa     = mysqli_insert_id($DB);
-    }
+// Ambil poin otomatis
+$p = mysqli_fetch_assoc(mysqli_query($DB,
+"SELECT poin FROM pelanggaran WHERE id_pelanggaran='$id_pelanggaran'"));
+$poin = $p['poin'];
 
-    // Simpan ke tabel transaksi (menggunakan nama kolom 'tangal')
-    $insert_transaksi = mysqli_query($DB, "INSERT INTO transaksi (id_siswa, kelas, id_pelanggaran, poin, tangal) 
-                                           VALUES ('$id_siswa', '$kelas', '$id_pelanggaran', '$poin', '$tanggal')");
+// Cek siswa
+$cek = mysqli_query($DB,"SELECT * FROM siswa WHERE nama_siswa='$nama'");
 
-    if($insert_transaksi){
-        echo "<script>alert('Data berhasil disimpan!'); window.location='index.php';</script>";
-    } else {
-        echo "<script>alert('Gagal menyimpan data!'); window.location='index.php';</script>";
-    }
+if(mysqli_num_rows($cek)>0){
+    $siswa = mysqli_fetch_assoc($cek);
+    $id_siswa = $siswa['id_siswa'];
 
-} else {
-    header("Location: index.php");
+    mysqli_query($DB,"
+    UPDATE siswa SET
+    kelas='$kelas',
+    jurusan='$jurusan'
+    WHERE id_siswa='$id_siswa'
+    ");
+
+}else{
+
+    mysqli_query($DB,"
+    INSERT INTO siswa(nama_siswa,kelas,jurusan)
+    VALUES('$nama','$kelas','$jurusan')
+    ");
+
+    $id_siswa = mysqli_insert_id($DB);
 }
+
+// Simpan transaksi
+mysqli_query($DB,"
+INSERT INTO transaksi(id_siswa,kelas,id_pelanggaran,poin,tangal,keterangan)
+VALUES('$id_siswa','$kelas_jurusan','$id_pelanggaran','$poin','$tanggal','$keterangan')
+");
+
+header("Location:index.php");
 ?>

@@ -160,6 +160,7 @@
                                     FROM transaksi t
                                     JOIN siswa s ON t.id_siswa = s.id_siswa
                                     JOIN pelanggaran p ON t.id_pelanggaran = p.id_pelanggaran
+                                    WHERE DATE(t.tangal)=CURDATE()
                                     ORDER BY t.id_transaksi DESC";
 
                 $data = mysqli_query($DB, $query_transaksi);
@@ -184,6 +185,7 @@
                         kelas: '<?= addslashes($d['kelas']); ?>',
                         id_pelanggaran: '<?= $d['id_pelanggaran']; ?>',
                         poin: '<?= $d['poin']; ?>',
+                        keterangan: '<?= addslashes($d['keterangan']); ?>'
                         tanggal: '<?= $d['tangal']; ?>'
                       })" 
                       class="bg-orange-500 hover:bg-orange-600 text-white p-2 rounded transition">
@@ -191,8 +193,8 @@
                     </button>
 
                     <a href="hapus.php?id=<?= $d['id_transaksi']; ?>"
-                       onclick="return confirm('Apakah Anda yakin ingin menghapus data ini?')"
-                       class="bg-red-500 hover:bg-red-600 text-white p-2 rounded transition">
+                        onclick="return confirm('Yakin ingin menghapus data ini?')"
+                        class="bg-red-500 hover:bg-red-600 text-white p-2 rounded">
                       <i class="fas fa-trash"></i>
                     </a>
                   </td>
@@ -207,6 +209,57 @@
 
               </tbody>
             </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="mt-10">
+        <h2 class="text-2xl font-bold mb-5">Riwayat Pelanggaran</h2>
+        <div class="bg-white rounded-xl shadow border overflow-x-auto">
+          <div class="overflow-x-auto">
+            <table class="min-w-full text-sm">
+
+            <thead class="bg-gray-100">
+            <tr>
+              <th class="p-3 text-left">No</th>
+              <th class="p-3 text-left">Nama</th>
+              <th class="p-3 text-left">Kelas</th>
+              <th class="p-3 text-left">Pelanggaran</th>
+              <th class="p-3 text-left">Poin</th>
+              <th class="p-3 text-left">Tanggal</th>
+              <th class="p-3 text-left">Keterangan</th>
+            </tr>
+            </thead>
+
+            <tbody>
+              <?php
+              $no=1;
+
+                $riwayat=mysqli_query($DB,"
+                SELECT transaksi.*, siswa.nama_siswa, siswa.kelas, siswa.jurusan,pelanggaran.nama_pelanggaran FROM transaksi
+                JOIN siswa ON transaksi.id_siswa=siswa.id_siswa
+                JOIN pelanggaran ON transaksi.id_pelanggaran=pelanggaran.id_pelanggaran
+                ORDER BY tangal DESC");
+              ?>
+
+            <?php while($d=mysqli_fetch_assoc($riwayat)){ ?>
+
+            <tr class="border-b hover:bg-gray-50">
+              <td class="p-3"><?= $no++; ?></td>
+              <td class="p-3"><?= $d['nama_siswa']; ?></td>
+              <td class="p-3"><?= $d['kelas']." ".$d['jurusan']; ?></td>
+              <td class="p-3"><?= $d['nama_pelanggaran']; ?></td>
+              <td class="p-3"><?= $d['poin']; ?></td>
+              <td class="p-3"><?= date('d M Y',strtotime($d['tangal'])); ?></td>
+              <td class="p-3"><?= $d['keterangan']; ?></td>
+            </tr>
+
+            <?php } ?>
+
+            </tbody>
+
+            </table>
+
           </div>
         </div>
       </section>
@@ -269,8 +322,8 @@
         </div>
 
         <div>
-          <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Kelas</label>
-          <input type="text" id="formKelas" name="kelas" required class="w-full text-sm border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="Contoh: XI IPA 1">
+          <label>Kelas</label>
+          <input id="formKelas"type="text"name="kelas_jurusan"placeholder="Contoh: XI RPL 3" required>
         </div>
 
         <div>
@@ -298,7 +351,9 @@
             <input type="date" id="formTanggal" name="tanggal" required class="w-full text-sm border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
           </div>
         </div>
+            <label>Keterangan</label>
 
+              <textarea id="formKeterangan"name="keterangan"rows="3"class="w-full border rounded-lg p-2"></textarea>
         <div class="flex justify-end gap-2 pt-4 border-t">
           <button type="button" onclick="closeModal()" class="px-4 py-2 border rounded-md text-sm font-medium text-gray-600 hover:bg-gray-100 transition">Batal</button>
           <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition">Simpan</button>
@@ -342,6 +397,7 @@
         document.getElementById('formKelas').value = data.kelas || '';
         document.getElementById('formJenis').value = data.id_pelanggaran || '';
         document.getElementById('formPoin').value = data.poin || '';
+        document.getElementById('formKeterangan').value=data.keterangan||'';
         document.getElementById('formTanggal').value = data.tanggal || '';
       }
     }
