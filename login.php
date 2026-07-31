@@ -1,27 +1,35 @@
 <?php
 session_start();
 include "koneksi.php";
-if (isset($_SESSION['login'])) {
-    header("Location: dashboard.php");
+
+if(isset($_SESSION['login'])){
+    header("Location: index.php");
     exit;
 }
-if (isset($_POST['login'])) {
-    $username = $_POST['username'];
-    $password = $_POST['password'];
-    $query = mysqli_query($DB, "SELECT * FROM users WHERE username='$username'");
-    if ($data = mysqli_fetch_assoc($query)) {
-        if (password_verify($password, $data['password'])) {
+
+if(isset($_POST['login'])){
+
+    $u = $_POST['username'];
+    $p = $_POST['password'];
+
+    $q = mysqli_query($DB,"SELECT * FROM user WHERE username='$u'");
+
+    if($d = mysqli_fetch_assoc($q)){
+        if(password_verify($p,$d['password'])){
             $_SESSION['login'] = true;
-            $_SESSION['nama'] = $data['nama'];
-            header("Location: dashboard.php");
+            $_SESSION['nama'] = $d['nama'];
+            header("Location: index.php");
             exit;
+        }else{
+            $error = "Password salah!";
         }
-        $error = "Password salah";
-    } else {
-        $error = "Username tidak ditemukan";
+    }else{
+        $error = "Username tidak ditemukan!";
     }
 }
 ?>
+
+<!DOCTYPE html>
 <html>
 <head>
     <title>Login</title>
@@ -30,16 +38,17 @@ if (isset($_POST['login'])) {
 
 <h2>LOGIN</h2>
 
-<?php if(isset($error)) echo "<p style='color:red'>$error</p>"; ?>
+<?= isset($error) ? "<p style='color:red'>$error</p>" : ""; ?>
 
 <form method="POST">
-    Username<br>
+    Username <br>
     <input type="text" name="username" required><br><br>
 
-    Password<br>
+    Password <br>
     <input type="password" name="password" required><br><br>
 
     <button type="submit" name="login">Login</button>
 </form>
+
 </body>
 </html>
