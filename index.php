@@ -23,7 +23,7 @@
 </head>
 <body class="bg-gray-50 text-slate-800">
 
-  <nav class="bg-[#0D3A7C] text-white sticky top-0 z-50 shadow-md px-6 py-4 flex justify-between items-center">
+  <nav class="bg-[#0D3A7C] text-white sticky top-0 z-40 shadow-md px-6 py-4 flex justify-between items-center">
     <div class="flex items-center gap-3">
       <div class="bg-white p-1.5 rounded-full"><i class="fas fa-balance-scale text-[#0D3A7C] text-xl"></i></div>
       <div>
@@ -104,7 +104,9 @@
         <h2 class="text-lg font-bold mb-6">DATA PELANGGARAN</h2>
         <div class="bg-white rounded-xl shadow-sm border p-6">
           <div class="flex flex-wrap gap-4 mb-6">
-            <button class="bg-blue-600 text-white px-4 py-2 rounded text-sm font-medium"><i class="fas fa-plus"></i> Tambah</button>
+            <button onclick="openModal('tambah')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm font-medium transition flex items-center gap-2">
+              <i class="fas fa-plus"></i> Tambah Pelanggaran
+            </button>
             <input id="searchInput" class="text-sm border rounded px-4 py-2 flex-grow max-w-xs" placeholder="Cari nama siswa..." type="text"/>
             <select class="text-sm border rounded px-4 py-2 bg-gray-50"><option>Pilih kelas</option></select>
             <select class="text-sm border rounded px-4 py-2 bg-gray-50"><option>Pilih jenis</option></select>
@@ -112,7 +114,15 @@
           <div class="overflow-x-auto">
             <table id="violationTable" class="w-full text-left text-sm">
               <thead class="bg-gray-50 text-gray-600 text-[10px] uppercase">
-                <tr><th class="p-3 border-b">No</th><th class="p-3 border-b">Nama</th><th class="p-3 border-b">Kelas</th><th class="p-3 border-b">Jenis</th><th class="p-3 border-b">Poin</th><th class="p-3 border-b">Tanggal</th><th class="p-3 border-b">Aksi</th></tr>
+                <tr>
+                  <th class="p-3 border-b">No</th>
+                  <th class="p-3 border-b">Nama</th>
+                  <th class="p-3 border-b">Kelas</th>
+                  <th class="p-3 border-b">Jenis</th>
+                  <th class="p-3 border-b">Poin</th>
+                  <th class="p-3 border-b">Tanggal</th>
+                  <th class="p-3 border-b">Aksi</th>
+                </tr>
               </thead>
               <tbody class="divide-y">
 
@@ -126,27 +136,32 @@
                 ?>
 
                 <tr class="hover:bg-gray-50">
+                  <td class="p-3"><?= $no++; ?></td>
+                  <td class="p-3 font-semibold student-name"><?= htmlspecialchars($d['nama_siswa'] ?? $d['nama_pelanggaran']); ?></td>
+                  <td class="p-3"><?= htmlspecialchars($d['kelas'] ?? '-'); ?></td>
+                  <td class="p-3"><?= htmlspecialchars($d['jenis_pelanggaran'] ?? '-'); ?></td>
+                  <td class="p-3"><span class="bg-red-50 text-red-600 px-2 py-0.5 rounded font-bold text-xs"><?= $d['poin']; ?></span></td>
+                  <td class="p-3 text-gray-500 text-xs"><?= htmlspecialchars($d['tanggal'] ?? date('Y-m-d')); ?></td>
+                  <td class="p-3 flex gap-1">
+                    <button 
+                      onclick="openModal('edit', {
+                        id: '<?= $d['id_pelanggaran']; ?>',
+                        nama: '<?= addslashes($d['nama_siswa'] ?? ''); ?>',
+                        kelas: '<?= addslashes($d['kelas'] ?? ''); ?>',
+                        jenis: '<?= addslashes($d['jenis_pelanggaran'] ?? ''); ?>',
+                        poin: '<?= $d['poin']; ?>',
+                        tanggal: '<?= $d['tanggal'] ?? ''; ?>'
+                      })" 
+                      class="bg-orange-500 hover:bg-orange-600 text-white p-2 rounded transition">
+                      <i class="fas fa-edit"></i>
+                    </button>
 
-                <td class="p-3"><?= $no++; ?></td>
-
-                <td class="p-3"><?= $d['nama_pelanggaran']; ?></td>
-
-                <td class="p-3"><?= $d['poin']; ?></td>
-
-                <td class="p-3 flex gap-1">
-
-                <a href="edit.php?id=<?= $d['id_pelanggaran']; ?>" class="bg-orange-500 text-white p-2 rounded">
-                <i class="fas fa-edit"></i>
-                </a>
-
-                <a href="hapus.php?id=<?= $d['id_pelanggaran']; ?>"
-                onclick="return confirm('Hapus data?')"
-                class="bg-red-500 text-white p-2 rounded">
-                <i class="fas fa-trash"></i>
-                </a>
-
-                </td>
-
+                    <a href="hapus.php?id=<?= $d['id_pelanggaran']; ?>"
+                       onclick="return confirm('Hapus data ini?')"
+                       class="bg-red-500 hover:bg-red-600 text-white p-2 rounded transition">
+                      <i class="fas fa-trash"></i>
+                    </a>
+                  </td>
                 </tr>
 
                 <?php } ?>
@@ -220,7 +235,86 @@
     </div>
   </footer>
 
+  <div id="formModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4 transition-opacity duration-300">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden transform transition-all">
+      <div class="bg-[#0D3A7C] text-white px-6 py-4 flex justify-between items-center">
+        <h3 id="modalTitle" class="font-bold text-lg">Tambah Data Pelanggaran</h3>
+        <button onclick="closeModal()" class="text-white hover:text-gray-300 text-xl font-bold">&times;</button>
+      </div>
+
+      <form id="violationForm" action="proses_simpan.php" method="POST" class="p-6 space-y-4">
+        <input type="hidden" id="formId" name="id_pelanggaran">
+
+        <div>
+          <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Nama Siswa</label>
+          <input type="text" id="formNama" name="nama_siswa" required class="w-full text-sm border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="Masukkan nama siswa">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Kelas</label>
+          <input type="text" id="formKelas" name="kelas" required class="w-full text-sm border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="Contoh: XI IPA 1">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Jenis Pelanggaran</label>
+          <input type="text" id="formJenis" name="jenis_pelanggaran" required class="w-full text-sm border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="Contoh: Terlambat">
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Poin</label>
+            <input type="number" id="formPoin" name="poin" required class="w-full text-sm border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="10">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Tanggal</label>
+            <input type="date" id="formTanggal" name="tanggal" required class="w-full text-sm border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-4 border-t">
+          <button type="button" onclick="closeModal()" class="px-4 py-2 border rounded-md text-sm font-medium text-gray-600 hover:bg-gray-100 transition">Batal</button>
+          <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition">Simpan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <script>
+    const modal = document.getElementById('formModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const violationForm = document.getElementById('violationForm');
+
+    // Buka Modal (Tambah / Edit)
+    function openModal(mode, data = null) {
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+
+      if (mode === 'tambah') {
+        modalTitle.innerText = 'Tambah Data Pelanggaran';
+        violationForm.action = 'proses_tambah.php'; // Sesuaikan file PHP pemproses data baru
+        violationForm.reset();
+        document.getElementById('formId').value = '';
+      } else if (mode === 'edit' && data) {
+        modalTitle.innerText = 'Edit Data Pelanggaran';
+        violationForm.action = 'proses_edit.php'; // Sesuaikan file PHP pemproses edit data
+        
+        // Isi form dengan data yang dipassing
+        document.getElementById('formId').value = data.id || '';
+        document.getElementById('formNama').value = data.nama || '';
+        document.getElementById('formKelas').value = data.kelas || '';
+        document.getElementById('formJenis').value = data.jenis || '';
+        document.getElementById('formPoin').value = data.poin || '';
+        document.getElementById('formTanggal').value = data.tanggal || '';
+      }
+    }
+
+    // Tutup Modal
+    function closeModal() {
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    // Filter Pencarian
     document.addEventListener('DOMContentLoaded', () => {
       const searchInput = document.getElementById('searchInput');
       const violationTable = document.getElementById('violationTable');
