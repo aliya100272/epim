@@ -381,7 +381,7 @@
       </div>
       <div>
         <h4 class="font-bold mb-4 border-l-4 border-blue-500 pl-3 uppercase">Kontak</h4>
-        <p class="text-gray-400">SMAN 1 Contoh | (033) 1234-5678 | info@sman1contoh.sch.id</p>
+        <p class="text-gray-400">SMKN 6 Jember | (0336) 441347 | smkn6jember.sch.id</p>
       </div>
     </div>
   </footer>
