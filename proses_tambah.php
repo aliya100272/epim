@@ -1,50 +1,40 @@
 <?php
 include "koneksi.php";
 
-$nama = $_POST['nama_siswa'];
-$kelas_jurusan = strtoupper($_POST['kelas_jurusan']);
-$id_pelanggaran = $_POST['id_pelanggaran'];
-$keterangan = $_POST['keterangan'];
-$tanggal = $_POST['tanggal'];
+// 1. Ambil data dari form modal dengan sanitasi
+$nama_siswa     = mysqli_real_escape_string($DB, $_POST['nama_siswa']);
+$kelas          = mysqli_real_escape_string($DB, $_POST['kelas']);
+$id_pelanggaran = mysqli_real_escape_string($DB, $_POST['id_pelanggaran']);
+$poin           = mysqli_real_escape_string($DB, $_POST['poin']);
+$tanggal        = mysqli_real_escape_string($DB, $_POST['tanggal']);
+$keterangan     = mysqli_real_escape_string($DB, $_POST['keterangan']);
 
-$data = explode(" ", $kelas_jurusan);
-$kelas = $data[0]." ".$data[2];
-$jurusan = $data[1];
+// 2. Cek apakah siswa sudah ada di database berdasarkan Nama dan Kelas
+$cek_siswa = mysqli_query($DB, "SELECT id_siswa FROM siswa WHERE nama_siswa = '$nama_siswa' AND kelas = '$kelas'");
 
-// Ambil poin otomatis
-$p = mysqli_fetch_assoc(mysqli_query($DB,
-"SELECT poin FROM pelanggaran WHERE id_pelanggaran='$id_pelanggaran'"));
-$poin = $p['poin'];
-
-// Cek siswa
-$cek = mysqli_query($DB,"SELECT * FROM siswa WHERE nama_siswa='$nama'");
-
-if(mysqli_num_rows($cek)>0){
-    $siswa = mysqli_fetch_assoc($cek);
+if (mysqli_num_rows($cek_siswa) > 0) {
+    // Jika siswa sudah ada, ambil id_siswa-nya
+    $siswa = mysqli_fetch_assoc($cek_siswa);
     $id_siswa = $siswa['id_siswa'];
-
-    mysqli_query($DB,"
-    UPDATE siswa SET
-    kelas='$kelas',
-    jurusan='$jurusan'
-    WHERE id_siswa='$id_siswa'
-    ");
-
-}else{
-
-    mysqli_query($DB,"
-    INSERT INTO siswa(nama_siswa,kelas,jurusan)
-    VALUES('$nama','$kelas','$jurusan')
-    ");
-
-    $id_siswa = mysqli_insert_id($DB);
+} else {
+    // Jika siswa belum ada, tambahkan ke tabel siswa (hanya nama_siswa dan kelas)
+    $q_insert_siswa = "INSERT INTO siswa (nama_siswa, kelas) VALUES ('$nama_siswa', '$kelas')";
+    if (mysqli_query($DB, $q_insert_siswa)) {
+        $id_siswa = mysqli_insert_id($DB);
+    } else {
+        die("Gagal menambahkan data siswa: " . mysqli_error($DB));
+    }
 }
 
-// Simpan transaksi
-mysqli_query($DB,"
-INSERT INTO transaksi(id_siswa,kelas,id_pelanggaran,poin,tangal,keterangan)
-VALUES('$id_siswa','$kelas_jurusan','$id_pelanggaran','$poin','$tanggal','$keterangan')
-");
+// 3. Simpan data transaksi pelanggaran
+$q_transaksi = "INSERT INTO transaksi (id_siswa, id_pelanggaran, poin, tangal, keterangan) 
+                VALUES ('$id_siswa', '$id_pelanggaran', '$poin', '$tanggal', '$keterangan')";
 
-header("Location:index.php");
+if (mysqli_query($DB, $q_transaksi)) {
+    // Redirect kembali ke halaman utama jika berhasil
+    header("Location: index.php");
+    exit();
+} else {
+    echo "Gagal menyimpan data pelanggaran: " . mysqli_error($DB);
+}
 ?>

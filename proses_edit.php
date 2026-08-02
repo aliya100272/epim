@@ -1,53 +1,44 @@
 <?php
 include "koneksi.php";
 
-$id_transaksi   = $_POST['id_transaksi'];
-$nama_siswa     = $_POST['nama_siswa'];
-$kelas_jurusan  = strtoupper($_POST['kelas_jurusan']);
-$id_pelanggaran = $_POST['id_pelanggaran'];
-$keterangan     = $_POST['keterangan'];
-$tanggal        = $_POST['tanggal'];
+// 1. Ambil data dari form edit dengan sanitasi
+$id_transaksi   = mysqli_real_escape_string($DB, $_POST['id_transaksi']);
+$nama_siswa     = mysqli_real_escape_string($DB, $_POST['nama_siswa']);
+$kelas          = mysqli_real_escape_string($DB, $_POST['kelas']);
+$id_pelanggaran = mysqli_real_escape_string($DB, $_POST['id_pelanggaran']);
+$keterangan     = mysqli_real_escape_string($DB, $_POST['keterangan']);
+$tanggal        = mysqli_real_escape_string($DB, $_POST['tanggal']);
 
-// Pisahkan kelas dan jurusan
-$data = explode(" ", $kelas_jurusan);
-$kelas = $data[0]." ".$data[2];
-$jurusan = $data[1];
+// 2. Ambil poin terbaru berdasarkan id_pelanggaran yang dipilih
+$q_pelanggaran = mysqli_query($DB, "SELECT poin FROM pelanggaran WHERE id_pelanggaran = '$id_pelanggaran'");
+$pelanggaran   = mysqli_fetch_assoc($q_pelanggaran);
+$poin          = $pelanggaran['poin'] ?? 0;
 
-// Ambil poin otomatis
-$pelanggaran = mysqli_fetch_assoc(mysqli_query($DB,
-"SELECT poin FROM pelanggaran
-WHERE id_pelanggaran='$id_pelanggaran'"));
+// 3. Ambil id_siswa dari tabel transaksi
+$q_transaksi = mysqli_query($DB, "SELECT id_siswa FROM transaksi WHERE id_transaksi = '$id_transaksi'");
+$transaksi   = mysqli_fetch_assoc($q_transaksi);
 
-$poin = $pelanggaran['poin'];
+if ($transaksi) {
+    $id_siswa = $transaksi['id_siswa'];
 
-// Ambil id_siswa
-$transaksi = mysqli_fetch_assoc(mysqli_query($DB,
-"SELECT id_siswa
-FROM transaksi
-WHERE id_transaksi='$id_transaksi'"));
+    // 4. Update data siswa (hanya nama_siswa dan kelas, tanpa kolom jurusan)
+    $update_siswa = "UPDATE siswa SET 
+                        nama_siswa = '$nama_siswa',
+                        kelas = '$kelas'
+                     WHERE id_siswa = '$id_siswa'";
+    mysqli_query($DB, $update_siswa);
 
-$id_siswa = $transaksi['id_siswa'];
+    // 5. Update data transaksi pelanggaran
+    $update_transaksi = "UPDATE transaksi SET 
+                            id_pelanggaran = '$id_pelanggaran',
+                            poin = '$poin',
+                            tangal = '$tanggal',
+                            keterangan = '$keterangan'
+                         WHERE id_transaksi = '$id_transaksi'";
+    mysqli_query($DB, $update_transaksi);
+}
 
-// Update data siswa
-mysqli_query($DB,"
-UPDATE siswa SET
-nama_siswa='$nama_siswa',
-kelas='$kelas',
-jurusan='$jurusan'
-WHERE id_siswa='$id_siswa'
-");
-
-// Update transaksi
-mysqli_query($DB,"
-UPDATE transaksi SET
-kelas='$kelas_jurusan',
-id_pelanggaran='$id_pelanggaran',
-poin='$poin',
-tangal='$tanggal',
-keterangan='$keterangan'
-WHERE id_transaksi='$id_transaksi'
-");
-
-header("Location:index.php");
-exit;
+// 6. Redirect kembali ke halaman utama
+header("Location: index.php");
+exit();
 ?>
