@@ -117,56 +117,93 @@
 
       <section id="data-pelanggaran" class="lg:col-span-8">
         <h2 class="text-lg font-bold mb-6">DATA PELANGGARAN HARI INI</h2>
-        <div class="bg-white rounded-xl shadow-sm border p-6">
-          <div class="flex flex-wrap gap-4 mb-6">
-            <button onclick="openModal('tambah')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm font-medium transition flex items-center gap-2">
-              <i class="fas fa-plus"></i> Tambah Pelanggaran
-            </button>
-            <input id="searchInput" class="text-sm border rounded px-4 py-2 flex-grow max-w-xs" placeholder="Cari nama siswa..." type="text"/>
-          </div>
-          
-          <div class="overflow-x-auto">
-            <table id="violationTable" class="w-full text-left text-sm">
-              <thead class="bg-gray-50 text-gray-600 text-[10px] uppercase">
-                <tr>
-                  <th class="p-3 border-b">No</th>
-                  <th class="p-3 border-b">Nama Siswa</th>
-                  <th class="p-3 border-b">Kelas</th>
-                  <th class="p-3 border-b">Jenis Pelanggaran</th>
-                  <th class="p-3 border-b">Poin</th>
-                  <th class="p-3 border-b">Tanggal</th>
-                  <th class="p-3 border-b text-center">Aksi</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y">
-                <?php
-                $no = 1;
-                $query_transaksi = "SELECT t.*, s.nama_siswa, s.kelas, p.nama_pelanggaran FROM transaksi t JOIN siswa s ON t.id_siswa = s.id_siswa JOIN pelanggaran p ON t.id_pelanggaran = p.id_pelanggaran WHERE DATE(t.tangal)=CURDATE() ORDER BY t.id_transaksi DESC";
-                $data = mysqli_query($DB, $query_transaksi);
+        <div class="bg-white rounded-xl shadow-sm border p-6 flex flex-col justify-between">
+          <div>
+            <div class="flex flex-wrap gap-4 mb-6">
+              <button onclick="openModal('tambah')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm font-medium transition flex items-center gap-2">
+                <i class="fas fa-plus"></i> Tambah Pelanggaran
+              </button>
+              <input id="searchInput" class="text-sm border rounded px-4 py-2 flex-grow max-w-xs" placeholder="Cari nama siswa..." type="text"/>
+            </div>
+            
+            <div class="overflow-x-auto">
+              <table id="violationTable" class="w-full text-left text-sm">
+                <thead class="bg-gray-50 text-gray-600 text-[10px] uppercase">
+                  <tr>
+                    <th class="p-3 border-b">No</th>
+                    <th class="p-3 border-b">Nama Siswa</th>
+                    <th class="p-3 border-b">Kelas</th>
+                    <th class="p-3 border-b">Jenis Pelanggaran</th>
+                    <th class="p-3 border-b">Poin</th>
+                    <th class="p-3 border-b">Tanggal</th>
+                    <th class="p-3 border-b text-center">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y">
+                  <?php
+                  $limit_today = 5;
+                  $page_today = isset($_GET['d_page']) ? max(1, (int)$_GET['d_page']) : 1;
+                  $start_today = ($page_today - 1) * $limit_today;
 
-                if($data && mysqli_num_rows($data) > 0){
-                  while($d = mysqli_fetch_array($data)){
-                ?>
-                <tr class="hover:bg-gray-50">
-                  <td class="p-3"><?= $no++; ?></td>
-                  <td class="p-3 font-semibold student-name"><?= htmlspecialchars($d['nama_siswa']); ?></td>
-                  <td class="p-3"><?= htmlspecialchars($d['kelas']); ?></td>
-                  <td class="p-3"><?= htmlspecialchars($d['nama_pelanggaran']); ?></td>
-                  <td class="p-3"><span class="bg-red-50 text-red-600 px-2 py-0.5 rounded font-bold text-xs"><?= $d['poin']; ?></span></td>
-                  <td class="p-3 text-gray-500 text-xs"><?= date('d M Y', strtotime($d['tangal'])); ?></td>
-                  <td class="p-3 flex justify-center gap-1">
-                    <button type="button" onclick="openModal('edit', { id_transaksi: '<?= $d['id_transaksi']; ?>', nama_siswa: '<?= addslashes($d['nama_siswa']); ?>', kelas: '<?= addslashes($d['kelas']); ?>', id_pelanggaran: '<?= $d['id_pelanggaran']; ?>', poin: '<?= $d['poin']; ?>', keterangan: '<?= addslashes($d['keterangan']); ?>', tanggal: '<?= $d['tangal']; ?>' })" class="bg-orange-500 hover:bg-orange-600 text-white p-2 rounded transition text-xs">
-                      <i class="fas fa-edit"></i>
-                    </button>
-                    <a href="hapus.php?id=<?= $d['id_transaksi']; ?>" onclick="return confirm('Yakin ingin menghapus data ini?')" class="bg-red-500 hover:bg-red-600 text-white p-2 rounded text-xs">
-                      <i class="fas fa-trash"></i>
-                    </a>
-                  </td>
-                </tr>
-                <?php } } else { echo "<tr><td colspan='7' class='text-center p-4 text-gray-400'>Belum ada data pelanggaran hari ini</td></tr>"; } ?>
-              </tbody>
-            </table>
+                  // Hitung total data hari ini
+                  $q_total_today = mysqli_query($DB, "SELECT COUNT(*) as total FROM transaksi WHERE DATE(tangal) = CURDATE()");
+                  $total_today_records = mysqli_fetch_assoc($q_total_today)['total'] ?? 0;
+                  $total_today_pages = ceil($total_today_records / $limit_today);
+
+                  $no = $start_today + 1;
+                  $query_transaksi = "SELECT t.*, s.nama_siswa, s.kelas, p.nama_pelanggaran FROM transaksi t JOIN siswa s ON t.id_siswa = s.id_siswa JOIN pelanggaran p ON t.id_pelanggaran = p.id_pelanggaran WHERE DATE(t.tangal)=CURDATE() ORDER BY t.id_transaksi DESC LIMIT $start_today, $limit_today";
+                  $data = mysqli_query($DB, $query_transaksi);
+
+                  if($data && mysqli_num_rows($data) > 0){
+                    while($d = mysqli_fetch_array($data)){
+                  ?>
+                  <tr class="hover:bg-gray-50">
+                    <td class="p-3"><?= $no++; ?></td>
+                    <td class="p-3 font-semibold student-name"><?= htmlspecialchars($d['nama_siswa']); ?></td>
+                    <td class="p-3"><?= htmlspecialchars($d['kelas']); ?></td>
+                    <td class="p-3"><?= htmlspecialchars($d['nama_pelanggaran']); ?></td>
+                    <td class="p-3"><span class="bg-red-50 text-red-600 px-2 py-0.5 rounded font-bold text-xs"><?= $d['poin']; ?></span></td>
+                    <td class="p-3 text-gray-500 text-xs"><?= date('d M Y', strtotime($d['tangal'])); ?></td>
+                    <td class="p-3 flex justify-center gap-1">
+                      <button type="button" onclick="openModal('edit', { id_transaksi: '<?= $d['id_transaksi']; ?>', nama_siswa: '<?= addslashes($d['nama_siswa']); ?>', kelas: '<?= addslashes($d['kelas']); ?>', id_pelanggaran: '<?= $d['id_pelanggaran']; ?>', poin: '<?= $d['poin']; ?>', keterangan: '<?= addslashes($d['keterangan']); ?>', tanggal: '<?= $d['tangal']; ?>' })" class="bg-orange-500 hover:bg-orange-600 text-white p-2 rounded transition text-xs">
+                        <i class="fas fa-edit"></i>
+                      </button>
+                      <a href="hapus.php?id=<?= $d['id_transaksi']; ?>" onclick="return confirm('Yakin ingin menghapus data ini?')" class="bg-red-500 hover:bg-red-600 text-white p-2 rounded text-xs">
+                        <i class="fas fa-trash"></i>
+                      </a>
+                    </td>
+                  </tr>
+                  <?php } } else { echo "<tr><td colspan='7' class='text-center p-4 text-gray-400'>Belum ada data pelanggaran hari ini</td></tr>"; } ?>
+                </tbody>
+              </table>
+            </div>
           </div>
+
+          <?php if($total_today_pages > 1): ?>
+          <div class="mt-6 pt-4 border-t flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-gray-600">
+            <div>Menampilkan <b><?= min($start_today + 1, $total_today_records); ?></b> - <b><?= min($start_today + $limit_today, $total_today_records); ?></b> dari <b><?= $total_today_records; ?></b> data</div>
+            <div class="flex items-center gap-1">
+              <?php 
+                $p_page_param = isset($_GET['p_page']) ? '&p_page='.(int)$_GET['p_page'] : '';
+              ?>
+              <?php if($page_today > 1): ?>
+                <a href="?d_page=<?= $page_today - 1; ?><?= $p_page_param; ?>#data-pelanggaran" class="px-3 py-1.5 border bg-white hover:bg-gray-100 rounded font-semibold text-gray-700 transition"><i class="fas fa-chevron-left text-[10px]"></i> Prev</a>
+              <?php else: ?>
+                <span class="px-3 py-1.5 border bg-gray-100 text-gray-400 rounded cursor-not-allowed"><i class="fas fa-chevron-left text-[10px]"></i> Prev</span>
+              <?php endif; ?>
+
+              <?php for($i = 1; $i <= $total_today_pages; $i++): ?>
+                <a href="?d_page=<?= $i; ?><?= $p_page_param; ?>#data-pelanggaran" class="px-3 py-1.5 border rounded font-semibold transition <?= $i == $page_today ? 'bg-blue-900 text-white border-blue-900' : 'bg-white hover:bg-gray-100 text-gray-700'; ?>"><?= $i; ?></a>
+              <?php endfor; ?>
+
+              <?php if($page_today < $total_today_pages): ?>
+                <a href="?d_page=<?= $page_today + 1; ?><?= $p_page_param; ?>#data-pelanggaran" class="px-3 py-1.5 border bg-white hover:bg-gray-100 rounded font-semibold text-gray-700 transition">Next <i class="fas fa-chevron-right text-[10px]"></i></a>
+              <?php else: ?>
+                <span class="px-3 py-1.5 border bg-gray-100 text-gray-400 rounded cursor-not-allowed">Next <i class="fas fa-chevron-right text-[10px]"></i></span>
+              <?php endif; ?>
+            </div>
+          </div>
+          <?php endif; ?>
         </div>
       </section>
     </div>
@@ -221,18 +258,21 @@
         <div class="p-4 bg-gray-50 border-t flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-gray-600">
           <div>Menampilkan <b><?= min($start + 1, $total_records); ?></b> - <b><?= min($start + $limit, $total_records); ?></b> dari <b><?= $total_records; ?></b> data</div>
           <div class="flex items-center gap-1">
+            <?php 
+              $d_page_param = isset($_GET['d_page']) ? '&d_page='.(int)$_GET['d_page'] : '';
+            ?>
             <?php if($page > 1): ?>
-              <a href="?p_page=<?= $page - 1; ?>#riwayat" class="px-3 py-1.5 border bg-white hover:bg-gray-100 rounded font-semibold text-gray-700 transition"><i class="fas fa-chevron-left text-[10px]"></i> Prev</a>
+              <a href="?p_page=<?= $page - 1; ?><?= $d_page_param; ?>#riwayat" class="px-3 py-1.5 border bg-white hover:bg-gray-100 rounded font-semibold text-gray-700 transition"><i class="fas fa-chevron-left text-[10px]"></i> Prev</a>
             <?php else: ?>
               <span class="px-3 py-1.5 border bg-gray-100 text-gray-400 rounded cursor-not-allowed"><i class="fas fa-chevron-left text-[10px]"></i> Prev</span>
             <?php endif; ?>
 
             <?php for($i = 1; $i <= $total_pages; $i++): ?>
-              <a href="?p_page=<?= $i; ?>#riwayat" class="px-3 py-1.5 border rounded font-semibold transition <?= $i == $page ? 'bg-blue-900 text-white border-blue-900' : 'bg-white hover:bg-gray-100 text-gray-700'; ?>"><?= $i; ?></a>
+              <a href="?p_page=<?= $i; ?><?= $d_page_param; ?>#riwayat" class="px-3 py-1.5 border rounded font-semibold transition <?= $i == $page ? 'bg-blue-900 text-white border-blue-900' : 'bg-white hover:bg-gray-100 text-gray-700'; ?>"><?= $i; ?></a>
             <?php endfor; ?>
 
             <?php if($page < $total_pages): ?>
-              <a href="?p_page=<?= $page + 1; ?>#riwayat" class="px-3 py-1.5 border bg-white hover:bg-gray-100 rounded font-semibold text-gray-700 transition">Next <i class="fas fa-chevron-right text-[10px]"></i></a>
+              <a href="?p_page=<?= $page + 1; ?><?= $d_page_param; ?>#riwayat" class="px-3 py-1.5 border bg-white hover:bg-gray-100 rounded font-semibold text-gray-700 transition">Next <i class="fas fa-chevron-right text-[10px]"></i></a>
             <?php else: ?>
               <span class="px-3 py-1.5 border bg-gray-100 text-gray-400 rounded cursor-not-allowed">Next <i class="fas fa-chevron-right text-[10px]"></i></span>
             <?php endif; ?>
