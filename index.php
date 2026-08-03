@@ -8,7 +8,7 @@
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
     body { font-family: 'Inter', sans-serif; }
-    .hero-gradient { background: linear-gradient(rgba(13,58,124,.85), rgba(13,58,124,.85)), url('https://picsum.photos/1200/600') center/cover; }
+    .hero-gradient { background: linear-gradient(rgba(13,58,124,.85), rgba(13,58,124,.85)), url('img/3smkn6.jpeg') center/cover; }
   </style>
 </head>
 <body class="bg-gray-50 text-slate-800">
@@ -294,8 +294,7 @@
             <i class="fas fa-exclamation-triangle text-amber-500"></i>
             <span class="text-sm font-bold"><?= htmlspecialchars($m['nama_pelanggaran']); ?></span>
           </div>
-          <p class="text-xs text-gray-500 mb-3">Poin Sanksi: <?= $m['poin']; ?></p>
-          <span class="bg-red-50 text-red-600 text-[10px] font-bold px-2 py-1 rounded border"><?= $m['poin']; ?> Poin</span>
+          <span class="bg-red-50 text-red-600 text-[15px] font-bold px-2 py-1 rounded border"><?= $m['poin']; ?> Poin</span>
         </div>
         <?php } ?>
       </div>
