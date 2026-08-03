@@ -18,7 +18,8 @@
   <nav class="bg-[#0D3A7C] text-white sticky top-0 z-40 shadow-md">
     <div class="px-6 py-4 flex justify-between items-center max-w-6xl mx-auto">
       <div class="flex items-center gap-3">
-        <div class="bg-white p-1.5 rounded-full"><i class="fas fa-balance-scale text-[#0D3A7C] text-xl"></i></div>
+        <div class="bg-white p-1.5 rounded-full shadow">
+          <img src="img/logocapsis.jpeg" alt="Logo APSIS" class="w-10 h-10 object-contain"></div>
         <div>
           <span class="text-2xl font-bold">CAPSIS</span>
           <p class="text-[10px] uppercase opacity-80">Catatan Pelanggaran Siswa</p>
@@ -303,22 +304,50 @@
   </main>
 
   <footer class="bg-[#0A1D37] text-white py-12 mt-12">
-    <div class="container mx-auto max-w-6xl px-6 grid grid-cols-1 md:grid-cols-3 gap-8 text-sm">
-      <div>
-        <div class="flex items-center gap-2 mb-4"><i class="fas fa-balance-scale text-2xl"></i><span class="text-2xl font-bold">CAPSIS</span></div>
-        <p class="text-gray-400">Sistem Informasi Pelanggaran Siswa</p>
-        <p class="text-gray-500 text-xs mt-6">© 2024 CAPSIS. All rights reserved.</p>
-      </div>
-      <div>
-        <h4 class="font-bold mb-4 border-l-4 border-blue-500 pl-3 uppercase">Tentang</h4>
-        <p class="text-gray-400">Dibuat untuk mendukung kedisiplinan siswa secara transparan dan terstruktur.</p>
-      </div>
-      <div>
-        <h4 class="font-bold mb-4 border-l-4 border-blue-500 pl-3 uppercase">Kontak</h4>
-        <p class="text-gray-400">SMKN 6 Jember | (0336) 441347 | smkn6jember.sch.id</p>
-      </div>
+    <div class="container mx-auto max-w-6xl px-6 grid grid-cols-1 md:grid-cols-3 gap-10">
+        <div>
+            <div class="flex items-center gap-3 mb-4">
+                <div class="bg-white rounded-full p-1.5 shadow">
+                    <img src="img/logocapsis.jpeg" alt="Logo CAPSIS" class="w-10 h-10 object-contain">
+                </div>
+
+                <div>
+                    <h3 class="text-2xl font-bold">CAPSIS</h3>
+                    <p class="text-sm text-gray-300">Catatan Pelanggaran Siswa</p>
+                </div>
+            </div>
+
+            <p class="text-gray-400 text-sm">
+                Sistem informasi untuk mencatat, memantau, dan mengelola pelanggaran siswa secara transparan.
+            </p>
+
+            <p class="text-gray-500 text-xs mt-5">
+                © <?= date('Y'); ?> CAPSIS. All Rights Reserved.
+            </p>
+        </div>
+        <div>
+            <h4 class="font-bold text-lg mb-4 border-l-4 border-blue-500 pl-3">
+                Tentang
+            </h4>
+
+            <p class="text-gray-400 leading-7">
+                CAPSIS membantu guru BK dan pihak sekolah dalam mengelola data pelanggaran siswa secara cepat, rapi, dan terstruktur.
+            </p>
+        </div>
+        <div>
+            <h4 class="font-bold text-lg mb-4 border-l-4 border-blue-500 pl-3">
+                Kontak
+            </h4>
+
+            <div class="space-y-3 text-gray-400">
+                <p><i class="fas fa-school mr-2 text-blue-400"></i>SMKN 6 Jember</p>
+                <p><i class="fas fa-phone mr-2 text-blue-400"></i>(0336) 441347</p>
+                <p><i class="fas fa-globe mr-2 text-blue-400"></i>smkn6jember.sch.id</p>
+            </div>
+        </div>
+
     </div>
-  </footer>
+</footer>
 
   <div id="formModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4 transition-opacity duration-300">
     <div class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden transform transition-all">
