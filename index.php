@@ -13,34 +13,35 @@
 </head>
 <body class="bg-gray-50 text-slate-800">
 
-  <?php 
-    include "koneksi.php";
-    $stat = mysqli_fetch_assoc(mysqli_query($DB, "
-      SELECT 
-        (SELECT COUNT(*) FROM siswa) as total_siswa,
-        COUNT(*) as total_transaksi,
-        IFNULL(SUM(poin), 0) as total_poin,
-        COUNT(CASE WHEN MONTH(tangal) = MONTH(CURRENT_DATE()) AND YEAR(tangal) = YEAR(CURRENT_DATE()) THEN 1 END) as bulan_ini
-      FROM transaksi
-    "));
+<?php 
+include "koneksi.php";
+$stat = mysqli_fetch_assoc(mysqli_query($DB, "
+  SELECT 
+    (SELECT COUNT(*) FROM siswa) as total_siswa,
+    COUNT(*) as total_transaksi,
+    IFNULL(SUM(poin), 0) as total_poin,
+    SUM(tangal >= DATE_FORMAT(NOW(), '%Y-%m-01')) as bulan_ini
+  FROM transaksi
+"));
+function renderPagination($currentPage, $totalPages, $paramName, $hash) {
+  if ($totalPages <= 1) return;
 
-    function renderPagination($currentPage, $totalPages, $paramName, $hash) {
-      if ($totalPages <= 1) return;
-      $otherParam = ($paramName === 'd_page' && isset($_GET['p_page'])) ? '&p_page='.(int)$_GET['p_page'] : (($paramName === 'p_page' && isset($_GET['d_page'])) ? '&d_page='.(int)$_GET['d_page'] : '');
-      echo '<div class="mt-4 pt-4 border-t flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-gray-600"><div class="flex items-center gap-1 ml-auto">';
-      echo $currentPage > 1 
-        ? "<a href='?{$paramName}=".($currentPage - 1)."{$otherParam}#{$hash}' class='px-3 py-1.5 border bg-white hover:bg-gray-100 rounded font-semibold'><i class='fas fa-chevron-left text-[10px]'></i> Prev</a>"
-        : "<span class='px-3 py-1.5 border bg-gray-100 text-gray-400 rounded cursor-not-allowed'><i class='fas fa-chevron-left text-[10px]'></i> Prev</span>";
-      for($i = 1; $i <= $totalPages; $i++) {
-        $active = $i == $currentPage ? 'bg-blue-900 text-white border-blue-900' : 'bg-white hover:bg-gray-100 text-gray-700';
-        echo "<a href='?{$paramName}={$i}{$otherParam}#{$hash}' class='px-3 py-1.5 border rounded font-semibold {$active}'>{$i}</a>";
-      }
-      echo $currentPage < $totalPages 
-        ? "<a href='?{$paramName}=".($currentPage + 1)."{$otherParam}#{$hash}' class='px-3 py-1.5 border bg-white hover:bg-gray-100 rounded font-semibold'>Next <i class='fas fa-chevron-right text-[10px]'></i></a>"
-        : "<span class='px-3 py-1.5 border bg-gray-100 text-gray-400 rounded cursor-not-allowed'>Next <i class='fas fa-chevron-right text-[10px]'></i></span>";
-      echo '</div></div>';
-    }
-  ?>
+  $otherKey = ($paramName === 'd_page') ? 'p_page' : 'd_page';
+  $otherParam = isset($_GET[$otherKey]) ? "&{$otherKey}=" . (int)$_GET[$otherKey] : '';
+
+  $link = fn($p, $text, $active = false) => $p 
+    ? "<a href='?{$paramName}={$p}{$otherParam}#{$hash}' class='px-3 py-1.5 border rounded font-semibold " . ($active ? 'bg-blue-900 text-white border-blue-900' : 'bg-white hover:bg-gray-100 text-gray-700') . "'>{$text}</a>"
+    : "<span class='px-3 py-1.5 border bg-gray-100 text-gray-400 rounded cursor-not-allowed'>{$text}</span>";
+
+  echo '<div class="mt-4 pt-4 border-t flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-gray-600"><div class="flex items-center gap-1 ml-auto">';
+  echo $link($currentPage > 1 ? $currentPage - 1 : false, "<i class='fas fa-chevron-left text-[10px]'></i> Prev");
+  for ($i = 1; $i <= $totalPages; $i++) {
+    echo $link($i, $i, $i == $currentPage);
+  }
+  echo $link($currentPage < $totalPages ? $currentPage + 1 : false, "Next <i class='fas fa-chevron-right text-[10px]'></i>");
+  echo '</div></div>';
+}
+?>
 
   <nav class="bg-[#0D3A7C] text-white sticky top-0 z-40 shadow-md">
     <div class="px-6 py-4 flex justify-between items-center max-w-6xl mx-auto">
